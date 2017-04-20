@@ -4,8 +4,19 @@ import java.io.IOException;
 
 public class Router {
     static int port;
+    static NeighborTable nTable;
+    static DVThread dThread;
+    static ListenerThread lThread;
+    static RoutingTable rTable;
+    static CommandThread cThread;
     public static void main(String[] args) throws Exception
     {
+        cThread = new CommandThread();
+        rTable = new RoutingTable();
+        lThread = new ListenerThread(port);
+        dThread = new DVThread();
+        nTable = new NeighborTable();
+        
         Boolean usingReverse = false;
         if(args[0].equals("-reverse")) {
             //using poison reverse
@@ -19,10 +30,6 @@ public class Router {
             getNeighbors(args[0]);
         }
 
-        CommandThread cThread = new CommandThread();
-        RoutingTable rTable = new RoutingTable();
-        ListenerThread lThread = new ListenerThread(port);
-        DVThread dThread = new DVThread();
         
         
         //cThread.run();
@@ -43,6 +50,8 @@ public class Router {
                 //lineArray[0] = neighbor ip
                 //lineArray[1] = neighbor port
                 //lineArray[2] = neighbor weight
+                
+                nTable.addNewNeighbor(lineArray[0],lineArray[1],Integer.parseInt(lineArray[2]));
             }
         } catch (IOException e) {
             e.printStackTrace();

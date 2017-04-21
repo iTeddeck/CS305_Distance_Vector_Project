@@ -5,10 +5,10 @@ import java.io.IOException;
 public class Router {
     static int port;
     static NeighborTable nTable;
-    static DVThread dThread;
-    static ListenerThread lThread;
+    static Runnable dThread;
+    static Runnable lThread;
     static RoutingTable rTable;
-    static CommandThread cThread;
+    static Runnable cThread;
     
     public static void main(String[] args) throws Exception
     {
@@ -29,14 +29,12 @@ public class Router {
         }
         
         cThread = new CommandThread(rTable);
-        lThread = new ListenerThread(port);
-        dThread = new DVThread();
+        lThread = new ListenerThread(port, rTable);
+        dThread = new DVThread(rTable, port);
 
-        
-        
-        cThread.run();
-        //dThread.run();
-        //lThread.run();
+        new Thread(cThread).start();
+        new Thread(lThread).start();
+        new Thread(dThread).start();
     }
 
     public static void getNeighbors(String filePath) {
@@ -46,7 +44,9 @@ public class Router {
             line = br.readLine();
             lineArray = line.split(" ");
             //lineArray[0] = this ip
-            port = Integer.parseInt(lineArray[1]);
+            //lineArray[1] = this port
+            port = Integer.parseInt(lineArray[1]); //must be integer because that's passed to UDP sockets
+            rTable.addNeighbor(lineArray[0],lineArray[1],0);
             while((line = br.readLine()) != null) {
                 lineArray = line.split(" ");
                 //lineArray[0] = neighbor ip

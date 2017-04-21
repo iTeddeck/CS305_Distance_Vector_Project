@@ -5,7 +5,7 @@ public class ListenerThread implements Runnable {
     private int portNum;
     DatagramSocket serverSocket;
     byte[] receiveData = new byte[1024];
-    public ListenerThread(int portNum) {
+    public ListenerThread(int portNum, RoutingTable rTable) {
         this.portNum = portNum;
         //Create UDP Connection
         try {

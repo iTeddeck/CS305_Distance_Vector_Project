@@ -1,6 +1,6 @@
 #BlueJ class context
-comment0.params=portNum
-comment0.target=ListenerThread(int)
+comment0.params=portNum\ rTable
+comment0.target=ListenerThread(int,\ RoutingTable)
 comment1.params=
 comment1.target=void\ run()
 numComments=2

@@ -9,13 +9,12 @@ public class Router {
     static ListenerThread lThread;
     static RoutingTable rTable;
     static CommandThread cThread;
+    
     public static void main(String[] args) throws Exception
     {
-        cThread = new CommandThread();
         rTable = new RoutingTable();
-        lThread = new ListenerThread(port);
-        dThread = new DVThread();
         nTable = new NeighborTable();
+        
         
         Boolean usingReverse = false;
         if(args[0].equals("-reverse")) {
@@ -26,13 +25,16 @@ public class Router {
         } else {
             //not using poison reverse
             //args[0] holds router.txt info
-
             getNeighbors(args[0]);
         }
+        
+        cThread = new CommandThread(rTable);
+        lThread = new ListenerThread(port);
+        dThread = new DVThread();
 
         
         
-        //cThread.run();
+        cThread.run();
         //dThread.run();
         //lThread.run();
     }
@@ -51,7 +53,7 @@ public class Router {
                 //lineArray[1] = neighbor port
                 //lineArray[2] = neighbor weight
                 
-                nTable.addNewNeighbor(lineArray[0],lineArray[1],Integer.parseInt(lineArray[2]));
+                rTable.addNeighbor(lineArray[0],lineArray[1],Integer.parseInt(lineArray[2]));
             }
         } catch (IOException e) {
             e.printStackTrace();

@@ -1,4 +1,6 @@
 #BlueJ class context
 comment0.params=
 comment0.target=RoutingTable()
-numComments=1
+comment1.params=IP\ port\ weight
+comment1.target=void\ addNeighbor(java.lang.String,\ java.lang.String,\ java.lang.Integer)
+numComments=2

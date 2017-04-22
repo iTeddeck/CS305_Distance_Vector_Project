@@ -46,7 +46,9 @@ public class Router {
         //new Thread(cThread).start();
         cThread.run();
         //new Thread(lThread).start();
+        //lThread.run();
         //new Thread(dThread).start();
+        //dThread.run();
         System.out.println("5");
     }
 
@@ -56,7 +58,7 @@ public class Router {
             String[] lineArray;
             line = br.readLine();
             lineArray = line.split(" ");
-            //lineArray[0] = this ip
+            //lineArra{ }y[0] = this ip
             //lineArray[1] = this port
             port = Integer.parseInt(lineArray[1]); //must be integer because that's passed to UDP sockets
             rTable.addNeighbor(lineArray[0],lineArray[1],0);

@@ -32,6 +32,7 @@ public class TimerSendDVTask extends TimerTask {
         }
         sendData = distanceVector.getBytes();
         for(int i = 1; i < rTable.neighborAddresses.size();i++) { //0 is you
+            System.out.println("Sending a message");
             try {
                 InetAddress ip = InetAddress.getByName(rTable.neighborAddresses.get(i).getIP());
                 DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, ip, Integer.parseInt(rTable.neighborAddresses.get(i).getPort()));

@@ -26,23 +26,26 @@ public class CommandThread implements Runnable {
         {
             if(line.contains("MSG")) {
                 String[] lineArray = line.split(" ");
-                byte[] sendData = new byte[1024];
-                // lineArray[1] = dst-ip
-                // lineArray[2] = dst-port
-                // lineArray[3] = msg
-                sendData = lineArray[3].getBytes();
-                try {
-                    InetAddress destIP = InetAddress.getByName(lineArray[1]);
-                    DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, destIP, Integer.parseInt(lineArray[2]));
-                    //try {
-                        //serverSocket.send(sendPacket);
-                    //} catch (IOException t) {
-                        //t.printStackTrace();
-                    //}
-                } catch (UnknownHostException e) {
-                    e.printStackTrace();
+                if (lineArray.length == 4) {
+                    byte[] sendData = new byte[1024];
+                    // lineArray[1] = dst-ip
+                    // lineArray[2] = dst-port
+                    // lineArray[3] = msg
+                    sendData = lineArray[3].getBytes();
+                    try {
+                        InetAddress destIP = InetAddress.getByName(lineArray[1]);
+                        DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, destIP, Integer.parseInt(lineArray[2]));
+                        //try {
+                            //serverSocket.send(sendPacket);
+                        //} catch (IOException t) {
+                            //t.printStackTrace();
+                        //}
+                    } catch (UnknownHostException e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    System.out.println("Bad input.");
                 }
-                
             } else if(line.contains("PRINT")) {
                 System.out.print("                ");
                 for(int a = 0; a < rTable.outwardIP.size();a++) {
@@ -64,6 +67,12 @@ public class CommandThread implements Runnable {
                 
             } else {
                 System.out.println("Command does not exist");
+            }
+            
+            try {
+                line = reader.readLine();
+            } catch (Exception e) {
+                System.out.println(e);
             }
         }
     }

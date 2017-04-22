@@ -43,9 +43,10 @@ public class Router {
         lThread = new ListenerThread(port, rTable);
         dThread = new DVThread(rTable, port);
 
-        new Thread(cThread).start();
-        new Thread(lThread).start();
-        new Thread(dThread).start();
+        //new Thread(cThread).start();
+        cThread.run();
+        //new Thread(lThread).start();
+        //new Thread(dThread).start();
         System.out.println("5");
     }
 

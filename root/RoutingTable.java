@@ -16,7 +16,9 @@ public class RoutingTable {
         costToNeighbor = new ArrayList<Integer>();
         
         ArrayList<Integer> ourCosts = new ArrayList<Integer>(); //our entry in the table
+        ArrayList<IPPort> ourOutwardIps = new ArrayList<IPPort>();
         costToGet.add(ourCosts);
+        outwardIP.add(ourOutwardIps);
     }
     
     public void addNeighbor(String IP, String port, Integer weight) {

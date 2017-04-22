@@ -5,33 +5,25 @@ public class ListenerThread implements Runnable {
     private int portNum;
     DatagramSocket serverSocket;
     byte[] receiveData = new byte[1024];
-    public ListenerThread(int portNum, RoutingTable rTable) {
+    public ListenerThread(int portNum, RoutingTable rTable, DatagramSocket serverSocket) {
         this.portNum = portNum;
         //Create UDP Connection
-        try {
-            serverSocket = new DatagramSocket(portNum);
-        } catch (SocketException e) {
-            e.printStackTrace();
-        }
+        this.serverSocket = serverSocket;
     }
 
     public void run() {
-        while(true) {
-            DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
-            try {
-                serverSocket.receive(receivePacket);
-                InetAddress IPAddress = receivePacket.getAddress();
-                int port = receivePacket.getPort();
+        DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+        try {
+            serverSocket.receive(receivePacket);
+            InetAddress IPAddress = receivePacket.getAddress();
+            int port = receivePacket.getPort();
 
-                String message = new String(receivePacket.getData());
-                
-                if(!message.equals("")) {
-                    System.out.println("received message from " + IPAddress.toString() + "," + port);
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
+            String message = new String(receivePacket.getData());
+
+            if(!message.equals("")) {
             }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
-
 }

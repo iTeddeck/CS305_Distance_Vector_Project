@@ -7,7 +7,6 @@ public class CommandThread implements Runnable {
 
     RoutingTable rTable;
     NeighborTable nTable;
-
     public CommandThread(RoutingTable rTable) {
         this.rTable = rTable;
         this.nTable = nTable;
@@ -66,13 +65,6 @@ public class CommandThread implements Runnable {
             } else {
                 System.out.println("Command does not exist");
             }
-
-            try {
-                line = reader.readLine();
-            } catch (Exception e) {
-                System.out.println(e);
-            }
         }
     }
-
 }

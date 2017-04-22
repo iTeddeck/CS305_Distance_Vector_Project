@@ -7,14 +7,10 @@ public class TimerSendDVTask extends TimerTask {
     Integer portNum;
     DatagramSocket serverSocket;
     byte[] sendData = new byte[1024];
-    public TimerSendDVTask(RoutingTable rTable, Integer portNum) {
+    public TimerSendDVTask(RoutingTable rTable, Integer portNum, DatagramSocket serverSocket) {
         this.rTable = rTable;
         this.portNum = portNum;
-        try {
-            serverSocket = new DatagramSocket(portNum);
-        } catch (SocketException e) {
-            e.printStackTrace();
-        }
+        this.serverSocket = serverSocket;
     }
 
     public void run() {

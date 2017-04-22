@@ -1,6 +1,8 @@
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.*;
+import java.net.*;
 
 public class Router {
     static int port;
@@ -9,20 +11,19 @@ public class Router {
     static Runnable lThread;
     static RoutingTable rTable;
     static Runnable cThread;
-    
+    static DatagramSocket serverSocket;
     public static void main(String[] args) throws Exception
     {
         rTable = new RoutingTable();
         nTable = new NeighborTable();
-        
+
         if (args.length == 1) {
             System.out.println("args[0]: " +args[0]);
         } else if (args.length == 2) {
             System.out.println("args[0]: " +args[0]);
             System.out.println("args[1]: " +args[1]);
         }
-        
-        
+
         Boolean usingReverse = false;
         if(args[0].equals("-reverse")) {
             //using poison reverse
@@ -38,16 +39,22 @@ public class Router {
             getNeighbors(args[0]);
             System.out.println("2");
         }
-        
-        cThread = new CommandThread(rTable);
-        lThread = new ListenerThread(port, rTable);
-        dThread = new DVThread(rTable, port);
 
-        //new Thread(cThread).start();
-        cThread.run();
-        //new Thread(lThread).start();
+        try {
+            serverSocket = new DatagramSocket(port);
+        } catch (SocketException e) {
+            e.printStackTrace();
+        }
+
+        cThread = new CommandThread(rTable);
+        lThread = new ListenerThread(port, rTable, serverSocket);
+        dThread = new DVThread(rTable, port, serverSocket);
+
+        new Thread(cThread).start();
+        //cThread.run();
+        new Thread(lThread).start();
         //lThread.run();
-        //new Thread(dThread).start();
+        new Thread(dThread).start();
         //dThread.run();
         System.out.println("5");
     }
@@ -67,7 +74,7 @@ public class Router {
                 //lineArray[0] = neighbor ip
                 //lineArray[1] = neighbor port
                 //lineArray[2] = neighbor weight
-                
+
                 rTable.addNeighbor(lineArray[0],lineArray[1],Integer.parseInt(lineArray[2]));
             }
         } catch (IOException e) {

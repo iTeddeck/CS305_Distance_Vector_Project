@@ -1,5 +1,6 @@
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.net.*;
 
 public class CommandThread implements Runnable {
 
@@ -23,9 +24,15 @@ public class CommandThread implements Runnable {
             //while line is not empty
             while( line != null && !line.equals(""))
             {
+                System.out.println(line);
                 if(line.contains("MSG")) {
-
-                } else if(line.contains("PRINT")) {
+                    String[] lineArray = line.split(" ");
+                    // lineArray[1] = dst-ip
+                    // lineArray[2] = dst-port
+                    // lineArray[3] = msg
+                    //InetAddress ip = InetAddress.getByName(rTable.neighborAddresses.get(i).getIP());
+                    //DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, ip, Integer.parseInt(rTable.neighborAddresses.get(i).getPort()));
+                }else if(line.contains("PRINT")) {
                     System.out.print("                ");
                     for(int a = 0; a < rTable.outwardIP.size();a++) {
                         for(int i = 0; i < rTable.outwardIP.get(a).size(); i++) {

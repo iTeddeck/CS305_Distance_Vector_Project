@@ -1,5 +1,6 @@
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.io.*;
 import java.net.*;
 
 public class CommandThread implements Runnable {
@@ -26,11 +27,22 @@ public class CommandThread implements Runnable {
         {
             if(line.contains("MSG")) {
                 String[] lineArray = line.split(" ");
+                byte[] sendData = new byte[1024];
                 // lineArray[1] = dst-ip
                 // lineArray[2] = dst-port
                 // lineArray[3] = msg
-                //InetAddress ip = InetAddress.getByName(rTable.neighborAddresses.get(i).getIP());
-                //DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, ip, Integer.parseInt(rTable.neighborAddresses.get(i).getPort()));
+                sendData = lineArray[3].getBytes();
+                try {
+                    InetAddress destIP = InetAddress.getByName(lineArray[1]);
+                    DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, destIP, Integer.parseInt(lineArray[2]));
+                    //try {
+                        //serverSocket.send(sendPacket);
+                    //} catch (IOException t) {
+                        //t.printStackTrace();
+                    //}
+                } catch (UnknownHostException e) {
+                    e.printStackTrace();
+                }
                 
             } else if(line.contains("PRINT")) {
                 System.out.print("                ");

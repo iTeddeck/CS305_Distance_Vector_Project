@@ -15,17 +15,28 @@ public class Router {
         rTable = new RoutingTable();
         nTable = new NeighborTable();
         
+        if (args.length == 1) {
+            System.out.println("args[0]: " +args[0]);
+        } else if (args.length == 2) {
+            System.out.println("args[0]: " +args[0]);
+            System.out.println("args[1]: " +args[1]);
+        }
+        
         
         Boolean usingReverse = false;
         if(args[0].equals("-reverse")) {
             //using poison reverse
             //args[1] holds router.txt
             usingReverse = true;
+            System.out.println("3");
             getNeighbors(args[1]);
+            System.out.println("4");
         } else {
             //not using poison reverse
             //args[0] holds router.txt info
+            System.out.println("1");
             getNeighbors(args[0]);
+            System.out.println("2");
         }
         
         cThread = new CommandThread(rTable);
@@ -35,6 +46,7 @@ public class Router {
         new Thread(cThread).start();
         new Thread(lThread).start();
         new Thread(dThread).start();
+        System.out.println("5");
     }
 
     public static void getNeighbors(String filePath) {

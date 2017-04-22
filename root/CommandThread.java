@@ -25,7 +25,6 @@ public class CommandThread implements Runnable {
         while( line != null && !line.equals("") )
         {
             if(line.contains("MSG")) {
-<<<<<<< HEAD
                 String[] lineArray = line.split(" ");
                 // lineArray[1] = dst-ip
                 // lineArray[2] = dst-port
@@ -33,9 +32,6 @@ public class CommandThread implements Runnable {
                 //InetAddress ip = InetAddress.getByName(rTable.neighborAddresses.get(i).getIP());
                 //DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, ip, Integer.parseInt(rTable.neighborAddresses.get(i).getPort()));
                 
-=======
-
->>>>>>> 72c367729342f69c10b693a1ab174be59a7f750c
             } else if(line.contains("PRINT")) {
                 System.out.print("                ");
                 for(int a = 0; a < rTable.outwardIP.size();a++) {
@@ -53,12 +49,8 @@ public class CommandThread implements Runnable {
                     System.out.println();
                 }                
             } else if(line.contains("CHANGE")) {
-<<<<<<< HEAD
                 String[] lineArray = line.split(" ");
                 
-=======
-
->>>>>>> 72c367729342f69c10b693a1ab174be59a7f750c
             } else {
                 System.out.println("Command does not exist");
             }

@@ -24,6 +24,10 @@ public class ListenerThread implements Runnable {
                 int port = receivePacket.getPort();
 
                 String message = new String(receivePacket.getData());
+                
+                if(!message.equals("")) {
+                    System.out.println("received message from " + IPAddress.toString() + "," + port);
+                }
             } catch (IOException e) {
                 e.printStackTrace();
             }

@@ -19,14 +19,16 @@ public class TimerSendDVTask extends TimerTask {
 
     public void run() {
         String distanceVector = ""; //will eventually be in form of <(IP,Port,Cost),(IP,Port,Cost)...>
-        for(int i = 0; i < rTable.outwardIP.size(); i++) {
-            distanceVector += "(";
-            distanceVector += rTable.outwardIP.get(i).getIP();
-            distanceVector += ",";
-            distanceVector += rTable.outwardIP.get(i).getPort();
-            distanceVector += ",";
-            distanceVector += rTable.costToGet.get(0).get(i);
-            distanceVector += ")";
+        for(int a = 0; a < rTable.outwardIP.size(); a++) {
+            for(int i = 0; i < rTable.outwardIP.get(a).size(); i++) {
+                distanceVector += "(";
+                distanceVector += rTable.outwardIP.get(a).get(i).getIP();
+                distanceVector += ",";
+                distanceVector += rTable.outwardIP.get(a).get(i).getPort();
+                distanceVector += ",";
+                distanceVector += rTable.costToGet.get(a).get(i);
+                distanceVector += ")";
+            }
         }
         sendData = distanceVector.getBytes();
         for(int i = 1; i < rTable.neighborAddresses.size();i++) { //0 is you

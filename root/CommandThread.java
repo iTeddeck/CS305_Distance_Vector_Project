@@ -7,9 +7,11 @@ public class CommandThread implements Runnable {
 
     RoutingTable rTable;
     NeighborTable nTable;
-    public CommandThread(RoutingTable rTable) {
+    DatagramSocket serverSocket;
+    public CommandThread(RoutingTable rTable, DatagramSocket serverSocket) {
         this.rTable = rTable;
         this.nTable = nTable;
+        this.serverSocket = serverSocket;
     }
 
     public void run() {
@@ -36,16 +38,38 @@ public class CommandThread implements Runnable {
                         InetAddress destIP = InetAddress.getByName(lineArray[1]);
                         DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, destIP, Integer.parseInt(lineArray[2]));
                         //try {
-                            //serverSocket.send(sendPacket);
+                        //serverSocket.send(sendPacket);
                         //} catch (IOException t) {
-                            //t.printStackTrace();
+                        //t.printStackTrace();
                         //}
                     } catch (UnknownHostException e) {
                         e.printStackTrace();
                     }
                 } else {
-                    System.out.println("Bad input.");
+                    System.out.println("Bad Message");
                 }
+            } else if (line.contains("CHANGE")) {
+                String[] lineArray = line.split(" ");
+                byte[] sendData = new byte[1024];
+                //linearray[1] = dest ip
+                //linearray[2] = dest port
+                //line array [3] = new weight
+
+                updatePersonalNeighborTable(lineArray[1], lineArray[2], lineArray[3]);
+                String parseAbleMessage = buildString(lineArray[1],lineArray[2],lineArray[3]);
+                sendData = parseAbleMessage.getBytes();
+                try {
+                    InetAddress destIP = InetAddress.getByName(lineArray[1]);
+                    DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, destIP, Integer.parseInt(lineArray[2]));
+                    try {
+                        serverSocket.send(sendPacket);
+                    } catch (IOException t) {
+                        t.printStackTrace();
+                    }
+                } catch (UnknownHostException e) {
+                    e.printStackTrace();
+                }
+                
             } else if(line.contains("PRINT")) {
                 System.out.print("                ");
                 for(int a = 0; a < rTable.outwardIP.size();a++) {
@@ -56,24 +80,44 @@ public class CommandThread implements Runnable {
                 System.out.println();
 
                 for(int i = 0; i < rTable.costToGet.size(); i++) {
-                    System.out.print(rTable.neighborAddresses.get(i).getIP() + "," + rTable.neighborAddresses.get(i).getPort() + "||");
+                    System.out.print(rTable.neighborAddresses.get(i).getIP() + "," + rTable.neighborAddresses.get(i).getPort() + "," + rTable.costToNeighbor.get(i) + "||");
                     for(int j = 0; j < rTable.costToGet.get(i).size(); j++) {
                         System.out.print(rTable.costToGet.get(i).get(j) + "               ");
                     }
                     System.out.println();
-                }                
-            } else if(line.contains("CHANGE")) {
-                String[] lineArray = line.split(" ");
-                
+                }
             } else {
                 System.out.println("Command does not exist");
             }
-            
+
             try {
                 line = reader.readLine();
             } catch (Exception e) {
                 System.out.println(e);
             }
         }
+    }
+
+    public void updatePersonalNeighborTable(String neighborIP, String neighborPort, String newWeight) {
+        int neighborIndex = -1;
+
+        for(int i = 0; i < rTable.neighborAddresses.size(); i++) {
+            if(rTable.neighborAddresses.get(i).getIP().equals(neighborIP)
+            && rTable.neighborAddresses.get(i).getPort().equals(neighborPort)) {
+                neighborIndex = i;
+                break;
+            }
+        }
+
+        if(neighborIndex != -1) {
+            Integer newWeightInt = Integer.parseInt(newWeight);
+            rTable.costToNeighbor.set(neighborIndex, newWeightInt);
+        }
+    }
+
+    public String buildString(String neighborIP, String neighborPort, String newWeight) {
+        String returnString = "";
+        returnString += "[2] " + newWeight;
+        return returnString;
     }
 }

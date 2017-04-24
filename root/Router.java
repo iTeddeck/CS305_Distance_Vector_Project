@@ -46,7 +46,7 @@ public class Router {
             e.printStackTrace();
         }
 
-        cThread = new CommandThread(rTable);
+        cThread = new CommandThread(rTable, serverSocket);
         lThread = new ListenerThread(port, rTable, serverSocket);
         dThread = new DVThread(rTable, port, serverSocket);
 

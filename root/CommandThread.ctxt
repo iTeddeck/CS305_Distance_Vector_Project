@@ -1,6 +1,10 @@
 #BlueJ class context
-comment0.params=rTable
-comment0.target=CommandThread(RoutingTable)
+comment0.params=rTable\ serverSocket
+comment0.target=CommandThread(RoutingTable,\ java.net.DatagramSocket)
 comment1.params=
 comment1.target=void\ run()
-numComments=2
+comment2.params=neighborIP\ neighborPort\ newWeight
+comment2.target=void\ updatePersonalNeighborTable(java.lang.String,\ java.lang.String,\ java.lang.String)
+comment3.params=neighborIP\ neighborPort\ newWeight
+comment3.target=java.lang.String\ buildString(java.lang.String,\ java.lang.String,\ java.lang.String)
+numComments=4

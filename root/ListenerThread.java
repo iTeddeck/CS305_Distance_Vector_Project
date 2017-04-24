@@ -22,26 +22,51 @@ public class ListenerThread implements Runnable {
             int port = receivePacket.getPort();
 
             String message = new String(receivePacket.getData());
-            System.out.println(message);
+            
+            String stringIPFrom = IPAddress.toString();
+            String stringPortFrom = Integer.toString(port);
+            String[] stringIPFromArray = stringIPFrom.split("/");
+            stringIPFrom = stringIPFromArray[1];
             if(!message.equals("")) {
                 String[] messageArray = message.split(" ");
 
                 if(messageArray[0].equals("[1]")) {
-                    parseReceivedDV(messageArray, IPAddress, port);
+                    parseReceivedDV(messageArray, stringIPFrom, stringPortFrom);
+                } else if (messageArray[0].equals("[2]")) {
+                    changeNeighborTable(stringIPFrom, stringPortFrom, messageArray[1]);
                 }
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
+    
+    public void changeNeighborTable(String ipFrom, String portFrom, String newWeight) {
+        int indexOfSender = -1;
+        
+        for(int i = 0; i < rTable.neighborAddresses.size();i++) {
+            if(rTable.neighborAddresses.get(i).getIP().equals(ipFrom)
+            && rTable.neighborAddresses.get(i).getPort().equals(portFrom)) {
+                
+                indexOfSender = i;
+                break;
+            }
+        }
+        
+        if(indexOfSender != -1) {
+            Integer newWeightInt = Integer.valueOf(newWeight.trim());
+            rTable.costToNeighbor.set(indexOfSender, newWeightInt);
+            
+            String returnString = "new weight to neighbor ";
+            returnString += ipFrom + ":" + portFrom;
+            returnString += " of " + newWeight;
+            System.out.println(returnString);
+        }
+    }
 
-    public void parseReceivedDV(String[] distanceVector, InetAddress ipFrom, int portFrom) {
-        String ipFromString = ipFrom.toString();
-        String portFromString = Integer.toString(portFrom);
+    public void parseReceivedDV(String[] distanceVector, String ipFromString, String portFromString) {
         String returnString =  "new dv received from " + ipFromString + ":" + portFromString + " with the following distances" + "\n";
         
-        String[] ipFromStringArray = ipFromString.split("/");
-        ipFromString = ipFromStringArray[1];
 
         //finding index of person who sent you this DV
         int indexOfSender = -1;

@@ -39,12 +39,13 @@ public class ListenerThread implements Runnable {
         String ipFromString = ipFrom.toString();
         String portFromString = Integer.toString(portFrom);
         String returnString =  "new dv received from " + ipFromString + ":" + portFromString + " with the following distances" + "\n";
+        
+        String[] ipFromStringArray = ipFromString.split("/");
+        ipFromString = ipFromStringArray[1];
 
         //finding index of person who sent you this DV
         int indexOfSender = -1;
         for(int i = 0; i < rTable.neighborAddresses.size(); i++) {
-            System.out.println(rTable.neighborAddresses.get(i).getIP() + ":" + ipFromString);
-            System.out.println(rTable.neighborAddresses.get(i).getPort() + ":" + portFromString);
             if(rTable.neighborAddresses.get(i).getIP().equals(ipFromString) 
             && rTable.neighborAddresses.get(i).getPort().equals(portFromString)) {
                 indexOfSender = i;

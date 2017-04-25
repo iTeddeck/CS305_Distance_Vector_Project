@@ -195,4 +195,35 @@ public class ListenerThread implements Runnable {
 
         System.out.println(returnString);
     }
+    
+    public boolean calculateDistanceVector() {
+        
+        boolean didChange = false;
+        for(int i = 0; i < rTable.outwardIP.get(0).size();i++) {
+            //get current cost to node
+            int costToNode = rTable.costToGet.get(0).get(i);
+            //get current next hop to node
+            IPPort whereNextHop = rTable.whereToForward.get(i);
+            
+            int newCost = costToNode;
+            IPPort newNextHop = null;
+            
+            for(int j = 0; j < rTable.neighborAddresses.size(); j++) {
+                if(rTable.costToNeighbor.get(j) + rTable.costToGet.get(0).get(i) < newCost) {
+                    newCost = rTable.costToNeighbor.get(j) + rTable.costToGet.get(0).get(i);
+                    newNextHop = rTable.neighborAddresses.get(j);
+                }
+            }
+            
+            if(newNextHop != null) {
+                //means there was a faster way to get to this node
+                rTable.costToGet.get(0).set(i, newCost);
+                rTable.whereToForward.set(i, newNextHop);
+                
+                didChange = true;
+            }
+        }
+        
+        return didChange;
+    }
 }

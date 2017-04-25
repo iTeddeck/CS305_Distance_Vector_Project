@@ -11,4 +11,6 @@ comment4.params=ipFrom\ portFrom\ newWeight
 comment4.target=void\ changeNeighborTable(java.lang.String,\ java.lang.String,\ java.lang.String)
 comment5.params=distanceVector\ ipFromString\ portFromString
 comment5.target=void\ parseReceivedDV(java.lang.String[],\ java.lang.String,\ java.lang.String)
-numComments=6
+comment6.params=
+comment6.target=boolean\ calculateDistanceVector()
+numComments=7

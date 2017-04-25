@@ -22,7 +22,7 @@ public class ListenerThread implements Runnable {
             int port = receivePacket.getPort();
 
             String message = new String(receivePacket.getData());
-            
+
             String stringIPFrom = IPAddress.toString();
             String stringPortFrom = Integer.toString(port);
             String[] stringIPFromArray = stringIPFrom.split("/");
@@ -34,29 +34,107 @@ public class ListenerThread implements Runnable {
                     parseReceivedDV(messageArray, stringIPFrom, stringPortFrom);
                 } else if (messageArray[0].equals("[2]")) {
                     changeNeighborTable(stringIPFrom, stringPortFrom, messageArray[1]);
+                } else if (messageArray[0].equals("[3]")) {
+                    parseMessage(messageArray, stringIPFrom, stringPortFrom);
+                } else {
+                    System.out.println("Do not understand message received");
                 }
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-    
+
+    public void parseMessage(String[] messageArray, String stringIPFrom, String stringPortFrom) {
+        //arr[0] = [3]
+        //arr[1] = message
+        //arr[2] = end ip
+        //arr[3] = end port
+        //arr[4] = router hop 1 ip
+        //arr[5] = router hop 1 port etc
+        
+        System.out.println(messageArray[2] + " " + messageArray[3] + ".");
+        System.out.println(rTable.neighborAddresses.get(0).getIP() + " " + rTable.neighborAddresses.get(0).getPort() + ".");
+        
+        if(rTable.neighborAddresses.get(0).getIP().equals(messageArray[2].trim())
+        && rTable.neighborAddresses.get(0).getPort().equals(messageArray[3].trim())) {
+            //means message was supposed to be sent to this router
+            String returnString = "";
+            returnString += messageArray[1];
+            for(int i = 4; i < messageArray.length; i+=2) {
+                returnString += " " + messageArray[i] + ":" + messageArray[i+1];
+            }
+            System.out.println(returnString);
+            return;
+        }
+
+        IPPort nextHopIPPort = findNextHop(messageArray[2], messageArray[3]);
+        if(nextHopIPPort != null) {
+            String nextHopIPString = nextHopIPPort.getIP();
+            String nextHopPortString = nextHopIPPort.getPort();
+
+            //building return string
+            String returnString = "";
+            returnString += "[3] " + messageArray[1];
+            for(int i = 2; i < messageArray.length; i++) {
+                returnString += " " + messageArray[i];
+            }
+
+            returnString += " " + rTable.neighborAddresses.get(0).getIP();
+            returnString += " " + rTable.neighborAddresses.get(0).getPort();
+
+            byte[] sendData = new byte[1024];
+            sendData = returnString.getBytes();
+            try {
+                InetAddress nextHopIP = InetAddress.getByName(nextHopIPString);
+                DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, nextHopIP, Integer.parseInt(nextHopPortString));
+                try {
+                    System.out.println("Message " + messageArray[1] + " from " + stringIPFrom + ":" + stringPortFrom + " to " + messageArray[2] + ":" + messageArray[3]
+                     + " forwarded to " + nextHopIPString + ":" + nextHopPortString);
+                    serverSocket.send(sendPacket);
+                } catch (IOException t) {
+                    t.printStackTrace();
+                }
+            } catch (UnknownHostException e) {
+                e.printStackTrace();
+            }
+        } else {
+            System.out.println("Could not find next hop");
+        }
+    }
+
+    public IPPort findNextHop(String IP, String Port) {
+        int indexOfOutward = -1;
+        for(int i = 0; i < rTable.outwardIP.get(0).size(); i++) {
+            if(rTable.outwardIP.get(0).get(i).getIP().equals(IP)
+            && rTable.outwardIP.get(0).get(i).getPort().equals(Port)) {
+                indexOfOutward = i;
+                break;
+            }
+        }
+        if(indexOfOutward != -1) {
+            return rTable.whereToForward.get(indexOfOutward);
+        } else {
+            return null;
+        }
+    }
+
     public void changeNeighborTable(String ipFrom, String portFrom, String newWeight) {
         int indexOfSender = -1;
-        
+
         for(int i = 0; i < rTable.neighborAddresses.size();i++) {
             if(rTable.neighborAddresses.get(i).getIP().equals(ipFrom)
             && rTable.neighborAddresses.get(i).getPort().equals(portFrom)) {
-                
+
                 indexOfSender = i;
                 break;
             }
         }
-        
+
         if(indexOfSender != -1) {
             Integer newWeightInt = Integer.valueOf(newWeight.trim());
             rTable.costToNeighbor.set(indexOfSender, newWeightInt);
-            
+
             String returnString = "new weight to neighbor ";
             returnString += ipFrom + ":" + portFrom;
             returnString += " of " + newWeight;
@@ -66,7 +144,6 @@ public class ListenerThread implements Runnable {
 
     public void parseReceivedDV(String[] distanceVector, String ipFromString, String portFromString) {
         String returnString =  "new dv received from " + ipFromString + ":" + portFromString + " with the following distances" + "\n";
-        
 
         //finding index of person who sent you this DV
         int indexOfSender = -1;
@@ -87,7 +164,7 @@ public class ListenerThread implements Runnable {
             //entry comp[4] == ")"
 
             //finding the index of this component
-            
+
             returnString += entryComponents[1] + ":" + entryComponents[2] + " " + entryComponents[3] + "\n";
 
             int indexOfDVEntry = -1;
@@ -110,12 +187,12 @@ public class ListenerThread implements Runnable {
                     wasChange = true;
                 }
             }
-            
+
             if(wasChange) {
                 System.out.println("DV Received from neighbor needs to be updated");
             } 
         }
-        
+
         System.out.println(returnString);
     }
 }

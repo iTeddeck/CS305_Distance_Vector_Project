@@ -33,15 +33,26 @@ public class CommandThread implements Runnable {
                     // lineArray[1] = dst-ip
                     // lineArray[2] = dst-port
                     // lineArray[3] = msg
-                    sendData = lineArray[3].getBytes();
+
+                    sendData = buildMessageString(lineArray[3], lineArray[2], lineArray[1]);
                     try {
                         InetAddress destIP = InetAddress.getByName(lineArray[1]);
-                        DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, destIP, Integer.parseInt(lineArray[2]));
-                        //try {
-                        //serverSocket.send(sendPacket);
-                        //} catch (IOException t) {
-                        //t.printStackTrace();
-                        //}
+
+                        IPPort nextHopIPPort = findNextHop(lineArray[1], lineArray[2]);
+                        if(nextHopIPPort != null) {
+                            String nextHopIPString = nextHopIPPort.getIP();
+                            String nextHopPortString = nextHopIPPort.getPort();
+                            InetAddress nextHopIP = InetAddress.getByName(nextHopIPString);
+                            DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, nextHopIP, Integer.parseInt(nextHopPortString));
+                            try {
+                                serverSocket.send(sendPacket);
+                            } catch (IOException t) {
+                                t.printStackTrace();
+                            }
+                        } else {
+                            System.out.println("Could not find next hop");
+                            return;
+                        }
                     } catch (UnknownHostException e) {
                         e.printStackTrace();
                     }
@@ -69,7 +80,7 @@ public class CommandThread implements Runnable {
                 } catch (UnknownHostException e) {
                     e.printStackTrace();
                 }
-                
+
             } else if(line.contains("PRINT")) {
                 System.out.print("                ");
                 for(int a = 0; a < rTable.outwardIP.size();a++) {
@@ -95,6 +106,28 @@ public class CommandThread implements Runnable {
             } catch (Exception e) {
                 System.out.println(e);
             }
+        }
+    }
+
+    public byte[] buildMessageString(String message, String endPort, String endIP) {
+        String returnString = "";
+        returnString += "[3] "+ message + " " + endIP + " " + endPort;
+        return returnString.getBytes();
+    }
+
+    public IPPort findNextHop(String IP, String Port) {
+        int indexOfOutward = -1;
+        for(int i = 0; i < rTable.outwardIP.get(0).size(); i++) {
+            if(rTable.outwardIP.get(0).get(i).getIP().equals(IP)
+            && rTable.outwardIP.get(0).get(i).getPort().equals(Port)) {
+                indexOfOutward = i;
+                break;
+            }
+        }
+        if(indexOfOutward != -1) {
+            return rTable.whereToForward.get(indexOfOutward);
+        } else {
+            return null;
         }
     }
 

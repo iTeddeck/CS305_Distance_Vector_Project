@@ -142,7 +142,7 @@ public class ListenerThread implements Runnable {
         }
     }
 
-        public void parseReceivedDV(String[] distanceVector, String ipFromString, String portFromString) {
+    public void parseReceivedDV(String[] distanceVector, String ipFromString, String portFromString) {
         String returnString =  "new dv received from " + ipFromString + ":" + portFromString + " with the following distances" + "\n";
         //finding index of person who sent you this DV
         int indexOfSender = -1;
@@ -186,32 +186,41 @@ public class ListenerThread implements Runnable {
         }
 
         System.out.println(returnString);
-        
+
         /**
          * Currently, I don't think it updates the DV, only receives it (because there are no slots in the existing DV for B at A for example)
          */
     }
-    
+
     public void addDVEntryToTable(String[] entryComponent, int indexOfSender) {
-        boolean isInDV = false;
-        int indexOfDVEntry = -1;
-        
-        for(int i = 0; i < rTable.outwardIP.get(indexOfSender).size();i++) {
-            if(rTable.outwardIP.get(indexOfSender).get(i).getIP().equals(entryComponent[1])
-            && rTable.outwardIP.get(indexOfSender).get(i).getPort().equals(entryComponent[2])) {
-                isInDV = true;
-                indexOfDVEntry = i;
-                break;
+        for(int i = 0; i < rTable.outwardIP.size(); i++) {
+            //Has to be in each different "distance vector" -> each row
+            boolean inRow = false;
+            int indexInRow = -1;
+
+            for(int j = 0; j < rTable.outwardIP.get(i).size(); j++) {
+                if(rTable.outwardIP.get(i).get(j).getIP().equals(entryComponent[1]) 
+                && rTable.outwardIP.get(i).get(j).getPort().equals(entryComponent[2])) {
+                    inRow = true;
+                    indexInRow = j;
+                    break;
+                }
             }
-        }
-        
-        if(isInDV) {
-            rTable.costToGet.get(indexOfSender).set(indexOfDVEntry, Integer.parseInt(entryComponent[3]));
-        } else {
-            //means that this router has never seen this before
-            for(int i = 0; i < rTable.outwardIP.size(); i++) {
-                IPPort newoutward = new IPPort(entryComponent[1], entryComponent[2]);
-                rTable.outwardIP.get(i).add(newoutward);
+            
+            if(i == indexOfSender && inRow) {
+                rTable.costToGet.get(indexOfSender).set(indexInRow, Integer.parseInt(entryComponent[3]));
+            } else if(i != indexOfSender && inRow) {
+                //don't do anything,
+            } else if (i == indexOfSender && !inRow) {
+                //if it does not exist
+                IPPort newIPPort = new IPPort(entryComponent[1], entryComponent[2]);
+                rTable.outwardIP.get(indexOfSender).add(newIPPort);
+                rTable.costToGet.get(indexOfSender).add(Integer.parseInt(entryComponent[3]));
+            } else if( i !=indexOfSender && !inRow) {
+                //add columns so all the different outward ips match
+                IPPort newIPPort = new IPPort(entryComponent[1], entryComponent[2]);
+                rTable.outwardIP.get(i).add(newIPPort);
+                rTable.costToGet.get(i).add(1000000);
             }
         }
     }

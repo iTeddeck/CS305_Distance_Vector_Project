@@ -83,10 +83,8 @@ public class CommandThread implements Runnable {
 
             } else if(line.contains("PRINT")) {
                 System.out.print("                ");
-                for(int a = 0; a < rTable.outwardIP.size();a++) {
-                    for(int i = 0; i < rTable.outwardIP.get(a).size(); i++) {
-                        System.out.print(rTable.outwardIP.get(a).get(i).getIP() + "," + rTable.outwardIP.get(a).get(i).getPort() + "||");
-                    }
+                for(int i = 0; i < rTable.outwardIP.get(0).size(); i++) {
+                    System.out.print(rTable.outwardIP.get(0).get(i).getIP() + "," + rTable.outwardIP.get(0).get(i).getPort() + "||");
                 }
                 System.out.println();
 

@@ -26,8 +26,14 @@ public class RoutingTable {
         outwardIP.get(0).add(neighborAddress);
         whereToForward.add(neighborAddress);
         costToGet.get(0).add(weight);
+        
         neighborAddresses.add(neighborAddress);
         costToNeighbor.add(weight);
+        
+        ArrayList<IPPort> neighborOutwardIP = new ArrayList<IPPort>();
+        ArrayList<Integer> neighborCosts = new ArrayList<Integer>();
+        outwardIP.add(neighborOutwardIP);
+        costToGet.add(neighborCosts);
     }
    
 }

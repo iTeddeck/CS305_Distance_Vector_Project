@@ -82,19 +82,7 @@ public class CommandThread implements Runnable {
                 }
 
             } else if(line.contains("PRINT")) {
-                System.out.print("                ");
-                for(int i = 0; i < rTable.outwardIP.get(0).size(); i++) {
-                    System.out.print(rTable.outwardIP.get(0).get(i).getIP() + "," + rTable.outwardIP.get(0).get(i).getPort() + "||");
-                }
-                System.out.println();
-
-                for(int i = 0; i < rTable.costToGet.size(); i++) {
-                    System.out.print(rTable.neighborAddresses.get(i).getIP() + "," + rTable.neighborAddresses.get(i).getPort() + "," + rTable.costToNeighbor.get(i) + "||");
-                    for(int j = 0; j < rTable.costToGet.get(i).size(); j++) {
-                        System.out.print(rTable.costToGet.get(i).get(j) + "               ");
-                    }
-                    System.out.println();
-                }
+                System.out.println(printTable());
             } else {
                 System.out.println("Command does not exist");
             }
@@ -127,6 +115,40 @@ public class CommandThread implements Runnable {
         } else {
             return null;
         }
+    }
+
+    public String printTable() {
+        String returnString = "";
+        returnString += "                ";
+        for(int i = 0; i < rTable.outwardIP.get(0).size(); i++) {
+            returnString += rTable.outwardIP.get(0).get(i).getIP() + "," + rTable.outwardIP.get(0).get(i).getPort() + "||";
+        }
+        returnString += "\n";
+
+        for(int i = 0; i < rTable.neighborAddresses.size();i++) {
+            returnString +=rTable.neighborAddresses.get(i).getIP() + "," + rTable.neighborAddresses.get(i).getPort() + "," + rTable.costToNeighbor.get(i) + "||";
+            for(int j =0; j < rTable.outwardIP.get(0).size(); j++) {
+                IPPort ipPortLookFor = rTable.outwardIP.get(0).get(j);
+                int indexOfLoc = -1;
+
+                for(int k = 0; k < rTable.outwardIP.get(i).size(); k++) {
+                    if(rTable.outwardIP.get(i).get(k).getIP().equals(ipPortLookFor.getIP())
+                    && rTable.outwardIP.get(i).get(k).getPort().equals(ipPortLookFor.getPort())) {
+                        indexOfLoc = k;
+                        break;
+                    }
+                }
+
+                if(indexOfLoc != -1) {
+                    returnString += rTable.costToGet.get(i).get(indexOfLoc) + "               ";
+                } else {
+                    System.out.println("Something wrong happened");
+                }
+            }
+            returnString += "\n";
+        }
+
+        return returnString;
     }
 
     public void updatePersonalNeighborTable(String neighborIP, String neighborPort, String newWeight) {

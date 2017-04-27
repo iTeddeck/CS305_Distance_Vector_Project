@@ -15,33 +15,43 @@ public class ListenerThread implements Runnable {
     }
 
     public void run() {
-        DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
-        try {
-            serverSocket.receive(receivePacket);
-            InetAddress IPAddress = receivePacket.getAddress();
-            int port = receivePacket.getPort();
+        while(true) {
+            DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+            try {
+                serverSocket.receive(receivePacket);
+                InetAddress IPAddress = receivePacket.getAddress();
+                int port = receivePacket.getPort();
 
-            String message = new String(receivePacket.getData());
+                String message = new String(receivePacket.getData());
 
-            String stringIPFrom = IPAddress.toString();
-            String stringPortFrom = Integer.toString(port);
-            String[] stringIPFromArray = stringIPFrom.split("/");
-            stringIPFrom = stringIPFromArray[1];
-            if(!message.equals("")) {
-                String[] messageArray = message.split(" ");
+                String stringIPFrom = IPAddress.toString();
+                String stringPortFrom = Integer.toString(port);
+                String[] stringIPFromArray = stringIPFrom.split("/");
+                stringIPFrom = stringIPFromArray[1];
+                if(!message.equals("")) {
+                    String[] messageArray = message.split(" ");
 
-                if(messageArray[0].equals("[1]")) {
-                    parseReceivedDV(messageArray, stringIPFrom, stringPortFrom);
-                } else if (messageArray[0].equals("[2]")) {
-                    changeNeighborTable(stringIPFrom, stringPortFrom, messageArray[1]);
-                } else if (messageArray[0].equals("[3]")) {
-                    parseMessage(messageArray, stringIPFrom, stringPortFrom);
-                } else {
-                    System.out.println("Do not understand message received");
+                    if(messageArray[0].equals("[1]")) {
+                        parseReceivedDV(messageArray, stringIPFrom, stringPortFrom);
+                        if(calculateDistanceVector()) {
+                            //resend the DV
+                            sendDistanceVector();
+                        }
+                    } else if (messageArray[0].equals("[2]")) {
+                        changeNeighborTable(stringIPFrom, stringPortFrom, messageArray[1]);
+                        if (calculateDistanceVector()) {
+                            //resend the DV
+                            sendDistanceVector();
+                        }
+                    } else if (messageArray[0].equals("[3]")) {
+                        parseMessage(messageArray, stringIPFrom, stringPortFrom);
+                    } else {
+                        System.out.println("Do not understand message received");
+                    }
                 }
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-        } catch (IOException e) {
-            e.printStackTrace();
         }
     }
 
@@ -125,7 +135,6 @@ public class ListenerThread implements Runnable {
         for(int i = 0; i < rTable.neighborAddresses.size();i++) {
             if(rTable.neighborAddresses.get(i).getIP().equals(ipFrom)
             && rTable.neighborAddresses.get(i).getPort().equals(portFrom)) {
-
                 indexOfSender = i;
                 break;
             }
@@ -156,40 +165,24 @@ public class ListenerThread implements Runnable {
 
         for(int i = 1; i < distanceVector.length-1; i++) {
             String[] entryComponents = distanceVector[i].split("-");
-            //entryComponents[0] == "("
-            //entryCompo[1] == IP
-            //entry compo[2] == Port
-            //entry compo[3] == cost (String form)
-            //entry comp[4] == ")"
+            if(entryComponents.length > 3) {
+                //entryComponents[0] == "("
+                //entryCompo[1] == IP
+                //entry compo[2] == Port
+                //entry compo[3] == cost (String form)
+                //entry comp[4] == ")"
 
-            //finding the index of this component
-            returnString += entryComponents[1] + ":" + entryComponents[2] + " " + entryComponents[3] + "\n";
-            int indexOfDVEntry = -1;
-            if(indexOfSender != -1) { //if -1, means that neighbor wasn't found in table
-                addDVEntryToTable(entryComponents, indexOfSender);
-            } else {
-                System.out.println("Sender of DV was not found in Table");
-            }
-
-            boolean wasChange = false; //will tell whether or not there was change in the DV
-            if(indexOfDVEntry != -1) { //if -1, means DV Entry wasn't found in neighbors outward ip table
-                if(rTable.costToGet.get(indexOfSender).get(indexOfDVEntry) == Integer.parseInt(entryComponents[3])) {
-                    //Might need to do something??
+                //finding the index of this component
+                returnString += entryComponents[1] + ":" + entryComponents[2] + " " + entryComponents[3] + "\n";
+                int indexOfDVEntry = -1;
+                if(indexOfSender != -1) { //if -1, means that neighbor wasn't found in table
+                    addDVEntryToTable(entryComponents, indexOfSender);
                 } else {
-                    wasChange = true;
+                    System.out.println("Sender of DV was not found in Table");
                 }
             }
-
-            if(wasChange) {
-                System.out.println("DV Received from neighbor needs to be updated");
-            } 
         }
-
         System.out.println(returnString);
-
-        /**
-         * Currently, I don't think it updates the DV, only receives it (because there are no slots in the existing DV for B at A for example)
-         */
     }
 
     public void addDVEntryToTable(String[] entryComponent, int indexOfSender) {
@@ -206,7 +199,7 @@ public class ListenerThread implements Runnable {
                     break;
                 }
             }
-            
+
             if(i == indexOfSender && inRow) {
                 rTable.costToGet.get(indexOfSender).set(indexInRow, Integer.parseInt(entryComponent[3]));
             } else if(i != indexOfSender && inRow) {
@@ -226,33 +219,71 @@ public class ListenerThread implements Runnable {
     }
 
     public boolean calculateDistanceVector() {
-
         boolean didChange = false;
         for(int i = 0; i < rTable.outwardIP.get(0).size();i++) {
-            //get current cost to node
-            int costToNode = rTable.costToGet.get(0).get(i);
-            //get current next hop to node
-            IPPort whereNextHop = rTable.whereToForward.get(i);
+            IPPort destLoc = rTable.outwardIP.get(0).get(i);
 
-            int newCost = costToNode;
+            int currentCost = rTable.costToGet.get(0).get(i);
+            IPPort currentNexHop = rTable.whereToForward.get(i);
+
+            int newCost = 10000000;
             IPPort newNextHop = null;
 
             for(int j = 0; j < rTable.neighborAddresses.size(); j++) {
-                if(rTable.costToNeighbor.get(j) + rTable.costToGet.get(0).get(i) < newCost) {
-                    newCost = rTable.costToNeighbor.get(j) + rTable.costToGet.get(0).get(i);
-                    newNextHop = rTable.neighborAddresses.get(j);
+                int costToNeighbor = rTable.costToNeighbor.get(j);
+
+                int indexOfDestLocInNeighbor = -1;
+                int costToDestThroughNeighbor = -1;
+                for(int k = 0; k < rTable.outwardIP.get(j).size(); k++) {
+                    if(rTable.outwardIP.get(j).get(k).getIP().equals(destLoc.getIP())
+                    && rTable.outwardIP.get(j).get(k).getPort().equals(destLoc.getPort())) {
+                        indexOfDestLocInNeighbor = k;
+                        break;
+                    }
+                }
+                costToDestThroughNeighbor = rTable.costToGet.get(j).get(indexOfDestLocInNeighbor) + costToNeighbor;
+                if(costToDestThroughNeighbor < newCost) {
+                    newCost = costToDestThroughNeighbor;
+                    newNextHop = rTable.neighborAddresses.get(i);
                 }
             }
 
-            if(newNextHop != null) {
-                //means there was a faster way to get to this node
+            if(newCost < currentCost) {
                 rTable.costToGet.get(0).set(i, newCost);
-                rTable.whereToForward.set(i, newNextHop);
-
+                rTable.outwardIP.get(0).set(i, newNextHop);
                 didChange = true;
             }
         }
 
         return didChange;
+    }
+
+    public void sendDistanceVector() {
+        byte[] sendData = new byte[1024];
+        String distanceVector = "[1] "; //will eventually be in form of <(IP,Port,Cost),(IP,Port,Cost)...>
+        for(int i = 0; i < rTable.outwardIP.get(0).size(); i++) {
+            distanceVector += "(-";
+            distanceVector += rTable.outwardIP.get(0).get(i).getIP();
+            distanceVector += "-";
+            distanceVector += rTable.outwardIP.get(0).get(i).getPort();
+            distanceVector += "-";
+            distanceVector += rTable.costToGet.get(0).get(i);
+            distanceVector += "-) "; //spaces to delim
+        }
+
+        sendData = distanceVector.getBytes();
+        for(int i = 1; i < rTable.neighborAddresses.size();i++) { //0 is you
+            try {
+                InetAddress ip = InetAddress.getByName(rTable.neighborAddresses.get(i).getIP());
+                DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, ip, Integer.parseInt(rTable.neighborAddresses.get(i).getPort()));
+                try {
+                    serverSocket.send(sendPacket);
+                } catch (IOException t) {
+                    t.printStackTrace();
+                }
+            } catch (UnknownHostException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }

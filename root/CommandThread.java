@@ -142,7 +142,7 @@ public class CommandThread implements Runnable {
                 if(indexOfLoc != -1) {
                     returnString += rTable.costToGet.get(i).get(indexOfLoc) + "               ";
                 } else {
-                    System.out.println("Something wrong happened");
+                    returnString += "inf" + "             ";
                 }
             }
             returnString += "\n";

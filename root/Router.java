@@ -47,8 +47,8 @@ public class Router {
         }
 
         cThread = new CommandThread(rTable, serverSocket);
-        lThread = new ListenerThread(port, rTable, serverSocket);
-        dThread = new DVThread(rTable, port, serverSocket);
+        lThread = new ListenerThread(port, rTable, serverSocket,usingReverse);
+        dThread = new DVThread(rTable, port, serverSocket, usingReverse);
 
         new Thread(cThread).start();
         //cThread.run();

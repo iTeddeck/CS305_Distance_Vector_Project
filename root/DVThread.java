@@ -7,8 +7,8 @@ public class DVThread implements Runnable {
     RoutingTable rTable;
     Integer portNum;
     DatagramSocket serverSocket;
-    public DVThread(RoutingTable rTable, Integer portNum, DatagramSocket serverSocket) {
-        dvTask = new TimerSendDVTask(rTable, portNum, serverSocket);
+    public DVThread(RoutingTable rTable, Integer portNum, DatagramSocket serverSocket, boolean poison) {
+        dvTask = new TimerSendDVTask(rTable, portNum, serverSocket, poison);
         this.rTable = rTable;
         this.portNum = portNum;
         this.serverSocket = serverSocket;

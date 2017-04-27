@@ -29,7 +29,7 @@ public class CommandThread implements Runnable {
             if(line.contains("MSG")) {
                 String[] lineArray = line.split(" ");
                 if (lineArray.length == 4) {
-                    byte[] sendData = new byte[1024];
+                    byte[] sendData = new byte[2048];
                     // lineArray[1] = dst-ip
                     // lineArray[2] = dst-port
                     // lineArray[3] = msg
@@ -98,6 +98,7 @@ public class CommandThread implements Runnable {
     public byte[] buildMessageString(String message, String endPort, String endIP) {
         String returnString = "";
         returnString += "[3] "+ message + " " + endIP + " " + endPort;
+        System.out.println(returnString);
         return returnString.getBytes();
     }
 

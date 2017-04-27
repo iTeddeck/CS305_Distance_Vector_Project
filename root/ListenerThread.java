@@ -5,7 +5,7 @@ import java.util.*;
 public class ListenerThread implements Runnable {
     private int portNum;
     DatagramSocket serverSocket;
-    byte[] receiveData = new byte[1024];
+    byte[] receiveData = new byte[2048];
     RoutingTable rTable;
     public ListenerThread(int portNum, RoutingTable rTable, DatagramSocket serverSocket) {
         this.portNum = portNum;
@@ -44,6 +44,7 @@ public class ListenerThread implements Runnable {
                             sendDistanceVector();
                         }
                     } else if (messageArray[0].equals("[3]")) {
+                        System.out.println(message);
                         parseMessage(messageArray, stringIPFrom, stringPortFrom);
                     } else {
                         System.out.println("Do not understand message received");
@@ -63,22 +64,27 @@ public class ListenerThread implements Runnable {
         //arr[4] = router hop 1 ip
         //arr[5] = router hop 1 port etc
 
-        System.out.println(messageArray[2] + " " + messageArray[3] + ".");
-        System.out.println(rTable.neighborAddresses.get(0).getIP() + " " + rTable.neighborAddresses.get(0).getPort() + ".");
+        //System.out.println(messageArray[2] + " " + messageArray[3] + ".");
+        //System.out.println(rTable.neighborAddresses.get(0).getIP() + " " + rTable.neighborAddresses.get(0).getPort() + ".");
 
+        System.out.println(messageArray[2].trim());
+        String[] realMessage3Arr = messageArray[3].trim().split("-");
+        String realMessage3 = realMessage3Arr[0];
+        System.out.println(realMessage3);
+        
         if(rTable.neighborAddresses.get(0).getIP().equals(messageArray[2].trim())
-        && rTable.neighborAddresses.get(0).getPort().equals(messageArray[3].trim())) {
+        && rTable.neighborAddresses.get(0).getPort().equals(realMessage3)) {
             //means message was supposed to be sent to this router
             String returnString = "";
             returnString += messageArray[1];
-            for(int i = 4; i < messageArray.length; i+=2) {
-                returnString += " " + messageArray[i] + ":" + messageArray[i+1];
-            }
+            //for(int i = 4; i < messageArray.length; i+=2) {
+            //    returnString += " " + messageArray[i] + ":" + messageArray[i+1];
+            //}
             System.out.println(returnString);
             return;
         }
 
-        IPPort nextHopIPPort = findNextHop(messageArray[2], messageArray[3]);
+        IPPort nextHopIPPort = findNextHop(messageArray[2], realMessage3);
         if(nextHopIPPort != null) {
             String nextHopIPString = nextHopIPPort.getIP();
             String nextHopPortString = nextHopIPPort.getPort();
@@ -99,7 +105,7 @@ public class ListenerThread implements Runnable {
                 InetAddress nextHopIP = InetAddress.getByName(nextHopIPString);
                 DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, nextHopIP, Integer.parseInt(nextHopPortString));
                 try {
-                    System.out.println("Message " + messageArray[1] + " from " + stringIPFrom + ":" + stringPortFrom + " to " + messageArray[2] + ":" + messageArray[3]
+                    System.out.println("Message " + messageArray[1] + " from " + stringIPFrom + ":" + stringPortFrom + " to " + messageArray[2] + ":" + realMessage3
                         + " forwarded to " + nextHopIPString + ":" + nextHopPortString);
                     serverSocket.send(sendPacket);
                 } catch (IOException t) {
@@ -214,13 +220,18 @@ public class ListenerThread implements Runnable {
                 IPPort newIPPort = new IPPort(entryComponent[1], entryComponent[2]);
                 rTable.outwardIP.get(i).add(newIPPort);
                 rTable.costToGet.get(i).add(1000000);
+                
+                if(i == 0) {
+                    rTable.whereToForward.add(newIPPort);
+                }
             }
         }
     }
 
-    public boolean calculateDistanceVector() {
+    /*public boolean calculateDistanceVector() {
         boolean didChange = false;
         for(int i = 0; i < rTable.outwardIP.get(0).size();i++) {
+            System.out.println("here");
             IPPort destLoc = rTable.outwardIP.get(0).get(i);
 
             int currentCost = rTable.costToGet.get(0).get(i);
@@ -256,6 +267,53 @@ public class ListenerThread implements Runnable {
         }
 
         return didChange;
+    }*/
+    
+    public boolean calculateDistanceVector() {
+        
+        boolean didChange = false;
+        
+        for(int i = 0; i < rTable.outwardIP.get(0).size(); i++) {
+            IPPort destLoc = rTable.outwardIP.get(0).get(i);
+            
+            int currentCost = rTable.costToGet.get(0).get(i);
+            IPPort currentNextHop = rTable.whereToForward.get(i);
+            
+            int newCost = 10000000;
+            IPPort newNextHop = null;
+            
+            for(int j = 0; j < rTable.neighborAddresses.size(); j++) {
+                IPPort neighborLoc = rTable.neighborAddresses.get(j);
+                int costToNeighbor = rTable.costToNeighbor.get(j);
+                int costFromNeighborToDest = -1;
+                
+                int indexOfDestInNeighbor = -1;
+                for(int a = 0; a < rTable.outwardIP.get(j).size(); a++) {
+                    if(rTable.outwardIP.get(j).get(a).getIP().equals(destLoc.getIP())
+                    && rTable.outwardIP.get(j).get(a).getPort().equals(destLoc.getPort())) {
+                        indexOfDestInNeighbor = a;
+                        break;
+                    }
+                }
+                
+                costFromNeighborToDest = rTable.costToGet.get(j).get(indexOfDestInNeighbor);
+                
+                int costThroughNeighbor = costFromNeighborToDest + costToNeighbor;
+                
+                if(costThroughNeighbor < newCost) {
+                    newCost = costThroughNeighbor;
+                    newNextHop = rTable.neighborAddresses.get(j);
+                }
+            }
+            
+            if(newCost < currentCost) {
+                rTable.costToGet.get(0).set(i, newCost);
+                rTable.whereToForward.set(i, newNextHop);
+                didChange = true;
+            }
+      }
+      return didChange;
+        
     }
 
     public void sendDistanceVector() {

@@ -1,6 +1,0 @@
-#BlueJ class context
-comment0.params=
-comment0.target=NeighborTable()
-comment1.params=IP\ Port\ weight
-comment1.target=void\ addNewNeighbor(java.lang.String,\ java.lang.String,\ java.lang.Integer)
-numComments=2

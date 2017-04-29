@@ -6,11 +6,9 @@ import java.net.*;
 public class CommandThread implements Runnable {
 
     RoutingTable rTable;
-    NeighborTable nTable;
     DatagramSocket serverSocket;
     public CommandThread(RoutingTable rTable, DatagramSocket serverSocket) {
         this.rTable = rTable;
-        this.nTable = nTable;
         this.serverSocket = serverSocket;
     }
 

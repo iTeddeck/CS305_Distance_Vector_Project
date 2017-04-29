@@ -6,7 +6,6 @@ import java.net.*;
 
 public class Router {
     static int port;
-    static NeighborTable nTable;
     static Runnable dThread;
     static Runnable lThread;
     static RoutingTable rTable;
@@ -15,7 +14,6 @@ public class Router {
     public static void main(String[] args) throws Exception
     {
         rTable = new RoutingTable();
-        nTable = new NeighborTable();
 
         if (args.length == 1) {
             System.out.println("args[0]: " +args[0]);

@@ -69,6 +69,7 @@ public class Router {
             //lineArray[1] = this port
             port = Integer.parseInt(lineArray[1]); //must be integer because that's passed to UDP sockets
             rTable.addNeighbor(lineArray[0],lineArray[1],0);
+            rTable.delays.add(null);
             while((line = br.readLine()) != null) {
                 lineArray = line.split(" ");
                 //lineArray[0] = neighbor ip

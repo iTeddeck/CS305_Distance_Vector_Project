@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.Timer;
 
 public class RoutingTable {
     
@@ -7,6 +8,8 @@ public class RoutingTable {
     public ArrayList<ArrayList<Integer>> costToGet; //cost from here to other router
     public ArrayList<IPPort> neighborAddresses;
     public ArrayList<Integer> costToNeighbor;
+    public ArrayList<DelayDeleteTask> delays;
+    Timer timer;
     
     public RoutingTable() {
         outwardIP = new ArrayList<ArrayList<IPPort>>();
@@ -14,6 +17,8 @@ public class RoutingTable {
         costToGet = new ArrayList<ArrayList<Integer>>();
         neighborAddresses = new ArrayList<IPPort>();
         costToNeighbor = new ArrayList<Integer>();
+        delays = new ArrayList<DelayDeleteTask> ();
+        timer = new Timer();
         
         ArrayList<Integer> ourCosts = new ArrayList<Integer>(); //our entry in the table
         ArrayList<IPPort> ourOutwardIps = new ArrayList<IPPort>();
@@ -34,6 +39,10 @@ public class RoutingTable {
         ArrayList<Integer> neighborCosts = new ArrayList<Integer>();
         outwardIP.add(neighborOutwardIP);
         costToGet.add(neighborCosts);
+        
+        DelayDeleteTask task = new DelayDeleteTask(this, neighborAddress);
+        delays.add(task);
+        timer.schedule(task, 10000);
     }
    
 }

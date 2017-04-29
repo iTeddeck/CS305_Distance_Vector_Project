@@ -1,6 +1,7 @@
 import java.io.*;
 import java.net.*;
 import java.util.*;
+import java.util.Timer;
 
 public class ListenerThread implements Runnable {
     private int portNum;
@@ -8,12 +9,14 @@ public class ListenerThread implements Runnable {
     byte[] receiveData = new byte[2048];
     RoutingTable rTable;
     boolean poison;
+    Timer timer;
     public ListenerThread(int portNum, RoutingTable rTable, DatagramSocket serverSocket, boolean poison) {
         this.portNum = portNum;
         //Create UDP Connection
         this.serverSocket = serverSocket;
         this.rTable = rTable;
         this.poison = poison;
+        timer = new Timer();
     }
 
     public void run() {
@@ -135,7 +138,7 @@ public class ListenerThread implements Runnable {
         }
         return outputArray;
     }
-    
+
     public String parseCollidedIndex(ArrayList<String> messageArray, String collidedMessage) {
         return collidedMessage.substring(0, messageArray.get(3).length());
     }
@@ -155,6 +158,14 @@ public class ListenerThread implements Runnable {
             Integer newWeightInt = Integer.valueOf(newWeight.trim());
             rTable.costToNeighbor.set(indexOfSender, newWeightInt);
 
+            DelayDeleteTask task = rTable.delays.get(indexOfSender);
+            task.cancel();
+            rTable.delays.remove(indexOfSender);
+
+            DelayDeleteTask newTask = new DelayDeleteTask(rTable, rTable.neighborAddresses.get(indexOfSender));
+            rTable.delays.set(indexOfSender, newTask);
+            timer.schedule(newTask, 10000);
+
             String returnString = "new weight to neighbor ";
             returnString += ipFrom + ":" + portFrom;
             returnString += " of " + newWeight;
@@ -172,6 +183,18 @@ public class ListenerThread implements Runnable {
                 indexOfSender = i;
                 break;
             }
+        }
+
+        if(indexOfSender != -1) {
+
+            DelayDeleteTask task = rTable.delays.get(indexOfSender);
+            task.cancel();
+            rTable.delays.remove(indexOfSender);
+
+            DelayDeleteTask newTask = new DelayDeleteTask(rTable, rTable.neighborAddresses.get(indexOfSender));
+            rTable.delays.set(indexOfSender, newTask);
+            timer.schedule(newTask, 10000);
+
         }
 
         for(int i = 1; i < distanceVector.length-1; i++) {

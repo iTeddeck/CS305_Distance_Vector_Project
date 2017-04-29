@@ -12,6 +12,9 @@ public class DelayDeleteTask extends TimerTask {
     
     public void run() {
         rTable.neighborAddresses.remove(neighborAddressIPPort);
+        String returnString = "";
+        returnString += "neighbor " + neighborAddressIPPort.getIP() + ":" + neighborAddressIPPort.getPort() + " dropped";
+        System.out.println(returnString);
     }
     
 }

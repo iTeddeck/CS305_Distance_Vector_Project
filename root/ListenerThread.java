@@ -46,9 +46,9 @@ public class ListenerThread implements Runnable {
                             sendDistanceVector();
                         }
                     } else if (messageArray[0].equals("[3]")) {
-                        System.out.println(message);
                         parseMessage(messageArray, stringIPFrom, stringPortFrom);
                     } else {
+                        System.out.println(message);
                         System.out.println("Do not understand message received");
                     }
                 }
@@ -58,57 +58,61 @@ public class ListenerThread implements Runnable {
         }
     }
 
-    public void parseMessage(String[] messageArray, String stringIPFrom, String stringPortFrom) {
+    public void parseMessage(String[] messageArray,String stringIPFrom, String stringPortFrom) {
         //arr[0] = [3]
         //arr[1] = message
-        //arr[2] = end ip
-        //arr[3] = end port
-        //arr[4] = router hop 1 ip
-        //arr[5] = router hop 1 port etc
-
-        //System.out.println(messageArray[2] + " " + messageArray[3] + ".");
-        //System.out.println(rTable.neighborAddresses.get(0).getIP() + " " + rTable.neighborAddresses.get(0).getPort() + ".");
-
-        System.out.println(messageArray[2].trim());
-        String[] realMessage3Arr = messageArray[3].trim().split("-");
-        String realMessage3 = realMessage3Arr[0];
-        System.out.println(realMessage3);
-
-        if(rTable.neighborAddresses.get(0).getIP().equals(messageArray[2].trim())
-        && rTable.neighborAddresses.get(0).getPort().equals(realMessage3)) {
-            //means message was supposed to be sent to this router
-            String returnString = "";
-            returnString += messageArray[1];
-            //for(int i = 4; i < messageArray.length; i+=2) {
-            //    returnString += " " + messageArray[i] + ":" + messageArray[i+1];
-            //}
+        //arr[2] = endip
+        //arr[3] = endport
+        //arr[4] = beg IP
+        //arr[5] = beg port
+        //arr[6] = router hop 1 ip
+        //arr[7] = routerhop 1 port.. etc
+        //Somewhere in ,5,7,etc there will be a / and it will collie with a different message
+        ArrayList<String> messageArrayList = parseCollidedMessage(messageArray);
+        String returnString = "";
+        String sendString = "";
+        if(messageArrayList.get(2).equals(rTable.neighborAddresses.get(0).getIP())
+        && messageArrayList.get(3).equals(rTable.neighborAddresses.get(0).getPort())) {
+            returnString += "Message: ";
+            returnString += messageArrayList.get(1) + "\n";
+            for(int i = 2; i < messageArrayList.size(); i++) {
+                returnString += " " + messageArrayList.get(i);
+            }
             System.out.println(returnString);
             return;
-        }
+        } else {
+            sendString += "[3] ";
+            sendString += messageArrayList.get(1) + " " + messageArrayList.get(2) + " " + messageArrayList.get(3);
+            sendString += " " + messageArrayList.get(4) + " " + messageArrayList.get(5);
+            for(int i = 6; i < messageArrayList.size(); i++) {
+                sendString += " " + messageArrayList.get(i);
+            }
+            returnString += "Message: ";
+            returnString += messageArrayList.get(1) + " from " + messageArrayList.get(4) + " " + ":" + messageArrayList.get(5);
+            returnString += " to " + messageArrayList.get(2) + ":" + messageArrayList.get(3);
 
-        IPPort nextHopIPPort = findNextHop(messageArray[2], realMessage3);
-        if(nextHopIPPort != null) {
-            String nextHopIPString = nextHopIPPort.getIP();
-            String nextHopPortString = nextHopIPPort.getPort();
+            IPPort toForward = null;
+            int index= -1;
 
-            //building return string
-            String returnString = "";
-            returnString += "[3] " + messageArray[1];
-            for(int i = 2; i < messageArray.length; i++) {
-                returnString += " " + messageArray[i];
+            for(int i = 0; i < rTable.outwardIP.get(0).size(); i++) {
+                if(rTable.outwardIP.get(0).get(i).getIP().equals(messageArrayList.get(2))
+                && rTable.outwardIP.get(0).get(i).getPort().equals(messageArrayList.get(3))) {
+                    index = i;
+                }
             }
 
-            returnString += " " + rTable.neighborAddresses.get(0).getIP();
-            returnString += " " + rTable.neighborAddresses.get(0).getPort();
+            if(index != -1) {
+                toForward = rTable.whereToForward.get(index);
+            }
 
+            returnString += " forwarded to " + toForward.getIP() + ":" + toForward.getPort();
+            System.out.println(returnString);
             byte[] sendData = new byte[1024];
-            sendData = returnString.getBytes();
+            sendData = sendString.getBytes();
             try {
-                InetAddress nextHopIP = InetAddress.getByName(nextHopIPString);
-                DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, nextHopIP, Integer.parseInt(nextHopPortString));
+                InetAddress nextHopIP = InetAddress.getByName(toForward.getIP());
+                DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, nextHopIP, Integer.parseInt(toForward.getPort()));
                 try {
-                    System.out.println("Message " + messageArray[1] + " from " + stringIPFrom + ":" + stringPortFrom + " to " + messageArray[2] + ":" + realMessage3
-                        + " forwarded to " + nextHopIPString + ":" + nextHopPortString);
                     serverSocket.send(sendPacket);
                 } catch (IOException t) {
                     t.printStackTrace();
@@ -116,25 +120,24 @@ public class ListenerThread implements Runnable {
             } catch (UnknownHostException e) {
                 e.printStackTrace();
             }
-        } else {
-            System.out.println("Could not find next hop");
         }
     }
 
-    public IPPort findNextHop(String IP, String Port) {
-        int indexOfOutward = -1;
-        for(int i = 0; i < rTable.outwardIP.get(0).size(); i++) {
-            if(rTable.outwardIP.get(0).get(i).getIP().equals(IP)
-            && rTable.outwardIP.get(0).get(i).getPort().equals(Port)) {
-                indexOfOutward = i;
-                break;
+    public ArrayList<String> parseCollidedMessage(String[] messageArray) {
+        ArrayList<String> outputArray = new ArrayList<String>();
+        for(int i = 0; i < messageArray.length; i++) {
+            if(messageArray[i].contains("-")) {
+                String[] collidedIndexArray = messageArray[i].split("-");
+                outputArray.add(parseCollidedIndex(outputArray, collidedIndexArray[0]));
+                return outputArray;
             }
+            outputArray.add(messageArray[i]);
         }
-        if(indexOfOutward != -1) {
-            return rTable.whereToForward.get(indexOfOutward);
-        } else {
-            return null;
-        }
+        return outputArray;
+    }
+    
+    public String parseCollidedIndex(ArrayList<String> messageArray, String collidedMessage) {
+        return collidedMessage.substring(0, messageArray.get(3).length());
     }
 
     public void changeNeighborTable(String ipFrom, String portFrom, String newWeight) {

@@ -97,7 +97,7 @@ public class CommandThread implements Runnable {
 
     public byte[] buildMessageString(String message, String endPort, String endIP) {
         String returnString = "";
-        returnString += "[3] "+ message + " " + endIP + " " + endPort;
+        returnString += "[3] "+ message + " " + endIP + " " + endPort + " " + rTable.neighborAddresses.get(0).getIP() + " " + rTable.neighborAddresses.get(0).getPort();
         System.out.println(returnString);
         return returnString.getBytes();
     }

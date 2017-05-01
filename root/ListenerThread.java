@@ -160,11 +160,11 @@ public class ListenerThread implements Runnable {
 
             DelayDeleteTask task = rTable.delays.get(indexOfSender);
             task.cancel();
-            rTable.delays.remove(indexOfSender);
+            //rTable.delays.remove(indexOfSender);
 
             DelayDeleteTask newTask = new DelayDeleteTask(rTable, rTable.neighborAddresses.get(indexOfSender));
             rTable.delays.set(indexOfSender, newTask);
-            timer.schedule(newTask, 10000);
+            timer.schedule(newTask, 10000000);
 
             String returnString = "new weight to neighbor ";
             returnString += ipFrom + ":" + portFrom;
@@ -189,12 +189,11 @@ public class ListenerThread implements Runnable {
 
             DelayDeleteTask task = rTable.delays.get(indexOfSender);
             task.cancel();
-            rTable.delays.remove(indexOfSender);
+            //rTable.delays.remove(indexOfSender);
 
             DelayDeleteTask newTask = new DelayDeleteTask(rTable, rTable.neighborAddresses.get(indexOfSender));
             rTable.delays.set(indexOfSender, newTask);
-            timer.schedule(newTask, 10000);
-
+            timer.schedule(newTask, 10000000);
         }
 
         for(int i = 1; i < distanceVector.length-1; i++) {

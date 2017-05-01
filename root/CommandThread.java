@@ -80,6 +80,7 @@ public class CommandThread implements Runnable {
                 }
 
             } else if(line.contains("PRINT")) {
+                            System.out.println(rTable.delays);
                 System.out.println(printTable());
             } else {
                 System.out.println("Command does not exist");

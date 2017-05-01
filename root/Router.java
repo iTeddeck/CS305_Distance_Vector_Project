@@ -66,15 +66,14 @@ public class Router {
             //lineArra{ }y[0] = this ip
             //lineArray[1] = this port
             port = Integer.parseInt(lineArray[1]); //must be integer because that's passed to UDP sockets
-            rTable.addNeighbor(lineArray[0],lineArray[1],0);
-            rTable.delays.add(null);
+            rTable.addNeighbor(lineArray[0],lineArray[1],0, true);
             while((line = br.readLine()) != null) {
                 lineArray = line.split(" ");
                 //lineArray[0] = neighbor ip
                 //lineArray[1] = neighbor port
                 //lineArray[2] = neighbor weight
 
-                rTable.addNeighbor(lineArray[0],lineArray[1],Integer.parseInt(lineArray[2]));
+                rTable.addNeighbor(lineArray[0],lineArray[1],Integer.parseInt(lineArray[2]), false);
             }
         } catch (IOException e) {
             e.printStackTrace();

@@ -241,7 +241,11 @@ public class ListenerThread implements Runnable {
                 //if it does not exist
                 IPPort newIPPort = new IPPort(entryComponent[1], entryComponent[2]);
                 rTable.outwardIP.get(indexOfSender).add(newIPPort);
-                rTable.costToGet.get(indexOfSender).add(Integer.parseInt(entryComponent[3]));
+                try {
+                    rTable.costToGet.get(indexOfSender).add(Integer.parseInt(entryComponent[3]));
+                } catch (NumberFormatException nfe) {
+                    System.out.println("Not a number");
+                }
             } else if( i !=indexOfSender && !inRow) {
                 //add columns so all the different outward ips match
                 IPPort newIPPort = new IPPort(entryComponent[1], entryComponent[2]);

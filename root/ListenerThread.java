@@ -18,6 +18,8 @@ public class ListenerThread implements Runnable {
         this.poison = poison;
         timer = new Timer();
     }
+    
+    
 
     public void run() {
         while(true) {
@@ -51,12 +53,63 @@ public class ListenerThread implements Runnable {
                         }
                     } else if (messageArray[0].equals("[3]")) {
                         parseMessage(messageArray, stringIPFrom, stringPortFrom);
+                    } else if(messageArray[0].equals("[4]")) {
+                        alertedNeighbors(messageArray, stringIPFrom, stringPortFrom);
                     } else {
                         System.out.println(message);
                         System.out.println("Do not understand message received");
                     }
                 }
             } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+    
+    public void alertedNeighbors(String[] messageArray, String ipFrom, String portFrom) {
+        boolean inNeighbor = false;
+        for(int i = 1; i < rTable.neighborAddresses.size();i++) {
+            if(rTable.neighborAddresses.get(i).getIP().equals(ipFrom)
+            && rTable.neighborAddresses.get(i).getPort().equals(portFrom)) {
+                inNeighbor = true;
+            }
+        }
+        
+        if(!inNeighbor) {
+            //needs to add to neighbor
+            IPPort newNeighbor = new IPPort(ipFrom, portFrom);
+            Integer weight = Integer.parseInt(messageArray[2]);
+            rTable.neighborAddresses.add(newNeighbor);
+            rTable.costToNeighbor.add(weight);
+            ArrayList<Integer> costToGetNeighbor = new ArrayList<Integer>();
+            rTable.costToGet.add(costToGetNeighbor);
+            DelayDeleteTask task = new DelayDeleteTask (rTable, newNeighbor);
+            rTable.delays.add(task);
+            timer.schedule(task, 1000000);
+            rTable.costToGet.get(0).add(weight);
+            rTable.whereToForward.add(newNeighbor);
+            rTable.outwardIP.get(0).add(newNeighbor);
+        }
+    }
+    
+    public void alertNeighbors() {
+        for(int i = 1; i < rTable.neighborAddresses.size(); i++) {
+            String sendString = "[4] " + rTable.costToNeighbor.get(i);
+            sendString += " >";
+            
+            byte[] sendData = new byte[1024];
+            sendData = sendString.getBytes();
+            
+            try {
+                InetAddress destIP = InetAddress.getByName(rTable.neighborAddresses.get(i).getIP());
+                DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, destIP, Integer.parseInt(rTable.neighborAddresses.get(i).getPort()));
+                
+                try {
+                    serverSocket.send(sendPacket);
+                } catch (IOException t) {
+                    t.printStackTrace();
+                }
+            } catch (UnknownHostException e) {
                 e.printStackTrace();
             }
         }
@@ -172,6 +225,23 @@ public class ListenerThread implements Runnable {
             returnString += ipFrom + ":" + portFrom;
             returnString += " of " + newWeight;
             System.out.println(returnString);
+        }
+        
+        //if the current path to the neighbor contains the neighbor
+        //adjust the weight to inf
+        
+        int indexForward = -1;
+        for(int i = 0; i < rTable.outwardIP.get(0).size(); i++) {
+            if(rTable.outwardIP.get(0).get(i).getIP().equals(ipFrom)
+            && rTable.outwardIP.get(0).get(i).getPort().equals(portFrom)) {
+                indexForward = i;
+                break;
+            }
+        }
+        
+        if(rTable.whereToForward.get(indexForward).getIP().equals(ipFrom)
+        && rTable.whereToForward.get(indexForward).getPort().equals(portFrom)) {
+            rTable.costToGet.get(0).set(indexForward,10000);
         }
     }
 

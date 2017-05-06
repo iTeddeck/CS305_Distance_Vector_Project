@@ -98,6 +98,8 @@ public class CommandThread implements Runnable {
         String returnString = "";
         returnString += "[3] "+ message + " " + endIP + " " + endPort + " " + rTable.neighborAddresses.get(0).getIP() + " " + rTable.neighborAddresses.get(0).getPort();
         System.out.println(returnString);
+        
+        returnString += ">";
         return returnString.getBytes();
     }
 
@@ -171,6 +173,8 @@ public class CommandThread implements Runnable {
     public String buildString(String neighborIP, String neighborPort, String newWeight) {
         String returnString = "";
         returnString += "[2] " + newWeight;
+        
+        returnString += ">";
         return returnString;
     }
 }

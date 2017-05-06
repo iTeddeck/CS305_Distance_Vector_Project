@@ -28,7 +28,7 @@ public class TimerSendDVTask extends TimerTask {
                 distanceVector += rTable.costToGet.get(0).get(i);
                 distanceVector += "-) "; //spaces to delim
             }
-
+            distanceVector += ">";
             sendData = distanceVector.getBytes();
             for(int i = 1; i < rTable.neighborAddresses.size();i++) { //0 is you
                 try {
@@ -67,7 +67,7 @@ public class TimerSendDVTask extends TimerTask {
                     }
                     distanceVector += "-) ";
                 }
-
+                distanceVector += ">";
                 sendData = distanceVector.getBytes();
                 try {
                     InetAddress ip = InetAddress.getByName(rTable.neighborAddresses.get(i).getIP());

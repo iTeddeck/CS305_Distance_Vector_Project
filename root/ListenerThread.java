@@ -34,8 +34,9 @@ public class ListenerThread implements Runnable {
                 String[] stringIPFromArray = stringIPFrom.split("/");
                 stringIPFrom = stringIPFromArray[1];
                 if(!message.equals("")) {
-                    String[] messageArray = message.split(" ");
-
+                    String[] collidedMessage = message.split(">");
+                    String[] messageArray = collidedMessage[0].split(" ");
+                    
                     if(messageArray[0].equals("[1]")) {
                         parseReceivedDV(messageArray, stringIPFrom, stringPortFrom);
                         if(calculateDistanceVector()) {
@@ -111,6 +112,7 @@ public class ListenerThread implements Runnable {
             returnString += " forwarded to " + toForward.getIP() + ":" + toForward.getPort();
             System.out.println(returnString);
             byte[] sendData = new byte[1024];
+            sendString += ">";
             sendData = sendString.getBytes();
             try {
                 InetAddress nextHopIP = InetAddress.getByName(toForward.getIP());
@@ -196,7 +198,7 @@ public class ListenerThread implements Runnable {
             timer.schedule(newTask, 10000000);
         }
 
-        for(int i = 1; i < distanceVector.length-1; i++) {
+        for(int i = 1; i < distanceVector.length; i++) {
             String[] entryComponents = distanceVector[i].split("-");
             if(entryComponents.length > 3) {
                 //entryComponents[0] == "("
@@ -241,7 +243,11 @@ public class ListenerThread implements Runnable {
                 //if it does not exist
                 IPPort newIPPort = new IPPort(entryComponent[1], entryComponent[2]);
                 rTable.outwardIP.get(indexOfSender).add(newIPPort);
-                rTable.costToGet.get(indexOfSender).add(Integer.parseInt(entryComponent[3]));
+                try {
+                    rTable.costToGet.get(indexOfSender).add(Integer.parseInt(entryComponent[3]));
+                } catch (NumberFormatException nfe) {
+                    System.out.println("Not a number");
+                }
             } else if( i !=indexOfSender && !inRow) {
                 //add columns so all the different outward ips match
                 IPPort newIPPort = new IPPort(entryComponent[1], entryComponent[2]);
@@ -363,7 +369,7 @@ public class ListenerThread implements Runnable {
                 distanceVector += rTable.costToGet.get(0).get(i);
                 distanceVector += "-) "; //spaces to delim
             }
-
+            distanceVector += ">";
             sendData = distanceVector.getBytes();
             for(int i = 1; i < rTable.neighborAddresses.size();i++) { //0 is you
                 try {
@@ -402,7 +408,7 @@ public class ListenerThread implements Runnable {
                     }
                     distanceVector += "-) ";
                 }
-
+                distanceVector += ">";
                 sendData = distanceVector.getBytes();
                 try {
                     InetAddress ip = InetAddress.getByName(rTable.neighborAddresses.get(i).getIP());

@@ -42,7 +42,7 @@ public class RoutingTable {
         if(!isMe) {
             DelayDeleteTask task = new DelayDeleteTask(this, neighborAddress);
             delays.add(task);
-            timer.schedule(task, 1000000);
+            timer.schedule(task, 10000);
         } else {
             delays.add(null);
         }

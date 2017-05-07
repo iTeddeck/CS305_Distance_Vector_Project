@@ -18,7 +18,7 @@ public class DVThread implements Runnable {
 
     public void run() {
         Timer timer = new Timer();
-        timer.scheduleAtFixedRate(dvTask,0,10000);
+        timer.scheduleAtFixedRate(dvTask,0,5333);
     }
 
 }

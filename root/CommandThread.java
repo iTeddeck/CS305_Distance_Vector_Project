@@ -80,7 +80,7 @@ public class CommandThread implements Runnable {
                 }
 
             } else if(line.contains("PRINT")) {
-                            System.out.println(rTable.delays);
+                System.out.println(rTable.delays);
                 System.out.println(printTable());
             } else {
                 System.out.println("Command does not exist");
@@ -98,7 +98,7 @@ public class CommandThread implements Runnable {
         String returnString = "";
         returnString += "[3] "+ message + " " + endIP + " " + endPort + " " + rTable.neighborAddresses.get(0).getIP() + " " + rTable.neighborAddresses.get(0).getPort();
         System.out.println(returnString);
-        
+
         returnString += ">";
         return returnString.getBytes();
     }
@@ -142,7 +142,11 @@ public class CommandThread implements Runnable {
                 }
 
                 if(indexOfLoc != -1) {
-                    returnString += rTable.costToGet.get(i).get(indexOfLoc) + "               ";
+                    if(i == 0) {
+                        returnString += rTable.costToGet.get(i).get(indexOfLoc) + ":" + rTable.whereToForward.get(indexOfLoc).getPort() + "           ";
+                    } else {
+                        returnString += rTable.costToGet.get(i).get(indexOfLoc) + "               ";
+                    }
                 } else {
                     returnString += "inf" + "             ";
                 }
@@ -173,8 +177,20 @@ public class CommandThread implements Runnable {
     public String buildString(String neighborIP, String neighborPort, String newWeight) {
         String returnString = "";
         returnString += "[2] " + newWeight;
-        
+
         returnString += ">";
+
+        int indexOfReceiver = -1;
+        for(int x = 0; x < rTable.outwardIP.get(0).size(); x++) {
+            if(rTable.outwardIP.get(0).get(x).getIP().equals(neighborIP)
+            && rTable.outwardIP.get(0).get(x).getPort().equals(neighborPort)) {
+                indexOfReceiver = x;
+                break;
+            }
+        }
+
+        rTable.costToGet.get(0).set(indexOfReceiver, Integer.parseInt(newWeight));
+
         return returnString;
     }
 }

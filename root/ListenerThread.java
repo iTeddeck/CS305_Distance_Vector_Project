@@ -394,7 +394,7 @@ public class ListenerThread implements Runnable {
 
                 int indexOfDestInNeighbor = -1;
                 for(int a = 0; a < rTable.outwardIP.get(j).size(); a++) {
-                    System.out.println(destLoc.getIP() + ":" + destLoc.getPort() + " vs " + rTable.outwardIP.get(j).get(a).getIP() + ":" + rTable.outwardIP.get(j).get(a).getPort());
+                    // System.out.println(destLoc.getIP() + ":" + destLoc.getPort() + " vs " + rTable.outwardIP.get(j).get(a).getIP() + ":" + rTable.outwardIP.get(j).get(a).getPort());
                     if(rTable.outwardIP.get(j).get(a).getIP().equals(destLoc.getIP())
                     && rTable.outwardIP.get(j).get(a).getPort().equals(destLoc.getPort())) {
                         indexOfDestInNeighbor = a;
